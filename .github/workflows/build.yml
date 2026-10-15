@@ -29,17 +29,22 @@ jobs:
       - name: Build  
         run: cmake --build build --parallel  
   
+      - name: Copy translations and examples  
+        run: mkdir -p build/translations && (cp -f build/*.qm build/translations/ || true) && cp -rf Bank_Examples build/  
+  
+
+  
       - name: Deploy Qt dependencies  
-        run: windeployqt-qt5 --debug --compiler-runtime build/opn2_bank_editor.exe
+        run: windeployqt-qt5 --debug --compiler-runtime --no-angle build/opn2_bank_editor.exe  
+  
+      - name: Copy non-Qt dependencies via ntldd  
+        run: ntldd -R build/opn2_bank_editor.exe | grep ucrt64 | awk '{print $3}' | sed 's/\\/\//g' | xargs -I{} cp -f {} build/ ; ls build/*.dll  
   
       - name: Copy translations and examples  
         run: mkdir -p build/translations && (cp -f build/*.qm build/translations/ || true) && cp -rf Bank_Examples build/  
-
-      - name: Copy Qt runtime DLLs  
-        run: cp -f /ucrt64/bin/libqwt-qt5.dll /ucrt64/bin/libgcc_s_seh-1.dll /ucrt64/bin/libstdc++-6.dll /ucrt64/bin/libwinpthread-1.dll /ucrt64/bin/libzstd.dll /ucrt64/bin/zlib1.dll /ucrt64/bin/libdouble-conversion.dll /ucrt64/bin/libicudt78.dll /ucrt64/bin/libicuin78.dll /ucrt64/bin/libicuuc78.dll /ucrt64/bin/libpcre2-16-0.dll /ucrt64/bin/libharfbuzz-0.dll /ucrt64/bin/libpng16-16.dll /ucrt64/bin/libfreetype-6.dll /ucrt64/bin/libglib-2.0-0.dll /ucrt64/bin/libintl-8.dll /ucrt64/bin/libiconv-2.dll build/ || true
   
       - name: Upload artifact  
         uses: actions/upload-artifact@v4  
         with:  
           name: opn2_bank_editor-win64-debug  
-          path: build/
+          path: build/          
