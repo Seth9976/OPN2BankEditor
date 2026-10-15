@@ -21,7 +21,7 @@ jobs:
         with:  
           msystem: UCRT64  
           update: true  
-          install: git mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-qt5-base mingw-w64-ucrt-x86_64-qt5-svg mingw-w64-ucrt-x86_64-qt5-tools mingw-w64-ucrt-x86_64-qt5-winextras mingw-w64-ucrt-x86_64-zlib mingw-w64-ucrt-x86_64-qwt-qt5  
+          install: git mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-qt5-base mingw-w64-ucrt-x86_64-qt5-svg mingw-w64-ucrt-x86_64-qt5-tools mingw-w64-ucrt-x86_64-qt5-winextras mingw-w64-ucrt-x86_64-zlib mingw-w64-ucrt-x86_64-qwt-qt5 mingw-w64-ucrt-x86_64-ntldd  
   
       - name: Configure CMake Debug  
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_VENDORED_RTAUDIO=ON -DUSE_VENDORED_RTMIDI=ON -DUSE_RTAUDIO_WASAPI=ON  
@@ -32,19 +32,17 @@ jobs:
       - name: Copy translations and examples  
         run: mkdir -p build/translations && (cp -f build/*.qm build/translations/ || true) && cp -rf Bank_Examples build/  
   
-
-  
       - name: Deploy Qt dependencies  
         run: windeployqt-qt5 --debug --compiler-runtime --no-angle build/opn2_bank_editor.exe  
   
-      - name: Copy non-Qt dependencies via ntldd  
-        run: ntldd -R build/opn2_bank_editor.exe | grep ucrt64 | awk '{print $3}' | sed 's/\\/\//g' | xargs -I{} cp -f {} build/ ; ls build/*.dll  
+      - name: Probe remaining DLL dependencies  
+        run: echo "=== ntldd recursive deps ===" && ntldd -R build/opn2_bank_editor.exe && echo "=== direct deps ===" && objdump -p build/opn2_bank_editor.exe | grep "DLL Name"  
   
-      - name: Copy translations and examples  
-        run: mkdir -p build/translations && (cp -f build/*.qm build/translations/ || true) && cp -rf Bank_Examples build/  
+      - name: Copy non-Qt DLLs  
+        run: ntldd -R build/opn2_bank_editor.exe | grep ucrt64 | awk '{print $3}' | sed 's/\\/\//g' | xargs -I{} cp -f {} build/ && echo "=== deployed DLLs ===" && ls build/*.dll && echo "=== unresolved ===" && (ntldd -R build/opn2_bank_editor.exe | grep -i "not found" || echo none)  
   
       - name: Upload artifact  
         uses: actions/upload-artifact@v4  
         with:  
           name: opn2_bank_editor-win64-debug  
-          path: build/          
+          path: build/
