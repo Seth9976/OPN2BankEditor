@@ -1,0 +1,42 @@
+name: Windows Debug Build  
+  
+on:  
+  push:  
+  workflow_dispatch:  
+  
+jobs:  
+  build-win32-debug:  
+    runs-on: windows-latest  
+    defaults:  
+      run:  
+        shell: msys2 {0}  
+    steps:  
+      - name: Checkout  
+        uses: actions/checkout@v4  
+        with:  
+          submodules: recursive  
+  
+      - name: Setup MSYS2  
+        uses: msys2/setup-msys2@v2  
+        with:  
+          msystem: MINGW32  
+          update: true  
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-cmake mingw-w64-i686-ninja mingw-w64-i686-qt5 mingw-w64-i686-zlib mingw-w64-i686-qwt-qt5  
+  
+      - name: Configure CMake Debug  
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_VENDORED_RTAUDIO=ON -DUSE_VENDORED_RTMIDI=ON -DUSE_RTAUDIO_WASAPI=ON  
+  
+      - name: Build  
+        run: cmake --build build --parallel  
+  
+      - name: Deploy Qt dependencies  
+        run: windeployqt --debug --compiler-runtime build/opn2_bank_editor.exe  
+  
+      - name: Copy translations and examples  
+        run: mkdir -p build/translations && cp -f build/*.qm build/translations/ 2>/dev/null; cp -rf Bank_Examples build/; true  
+  
+      - name: Upload artifact  
+        uses: actions/upload-artifact@v4  
+        with:  
+          name: opn2_bank_editor-win32-debug  
+          path: build/
