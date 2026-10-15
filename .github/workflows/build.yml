@@ -21,7 +21,7 @@ jobs:
         with:  
           msystem: UCRT64  
           update: true  
-          install: git mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-qt5-base mingw-w64-ucrt-x86_64-qt5-svg mingw-w64-ucrt-x86_64-qt5-tools mingw-w64-ucrt-x86_64-zlib mingw-w64-ucrt-x86_64-qwt-qt5  
+          install: git mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-qt5-base mingw-w64-ucrt-x86_64-qt5-svg mingw-w64-ucrt-x86_64-qt5-tools mingw-w64-ucrt-x86_64-qt5-winextras mingw-w64-ucrt-x86_64-zlib mingw-w64-ucrt-x86_64-qwt-qt5  
   
       - name: Configure CMake Debug  
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_VENDORED_RTAUDIO=ON -DUSE_VENDORED_RTMIDI=ON -DUSE_RTAUDIO_WASAPI=ON  
